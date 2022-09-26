@@ -13,6 +13,9 @@ manager(Name, Manager) :-
     employee_details(Name, _, _, _, _, Manager).
 
 valid_employee(Name) :-
+    % Recursive function, 
+    % Check if employee exists and check if manager is equal to employee
+    % If true then they're the director, otherwise go up the chain until true
     employee_details(Name, _, _, _, _, Manager),
     ((Manager = Name) -> true ; valid_employee(Manager)).
 
