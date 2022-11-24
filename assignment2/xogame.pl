@@ -52,16 +52,8 @@ getCells(L, N) :- findall(cell(X, Y, N, H), cell(X, Y, N, H), L).
 % then checks what the length of the list is
 % is the list is 2 then clearly the player/opponent has 2 out of 3, meaning the empty cell
 % is a counter cell
-counterCell(cell(X, Y, N, H), Player) :-
-    ((   findall(cell(X, B, Player, Heuristic), cell(X, B, Player, Heuristic), L),
-    length(L, 2))
-    ;
-    (findall(cell(A, Y, Player, Heuristic), cell(A, Y, Player, Heuristic), L),
-    length(L, 2))),
-    assertz(cell(X, Y, N, 5)),
-    retract(cell(X, Y, N, H)).
 
-winCell(cell(X, Y, N, H), Player) :-
+checkCell(cell(X, Y, N, H), Player, NewCell, NewHeuristic) :-
     (    
     (findall(cell(X, B, Player, Heuristic), cell(X, B, Player, Heuristic), L),
     length(L, 2))
@@ -69,8 +61,10 @@ winCell(cell(X, Y, N, H), Player) :-
     (findall(cell(A, Y, Player, Heuristic), cell(A, Y, Player, Heuristic), L),
     length(L, 2))
     ),
-    assertz(cell(X, Y, N, 10)),
-    retract(cell(X, Y, N, H)).
+    H < NewHeuristic,
+    assertz(cell(X, Y, N, NewHeuristic)),
+    retract(cell(X, Y, N, H)),
+    NewCell = cell(X, Y, N, NewHeuristic).
 
 % look for optimal move
 optimal_move(WinningCells, CounterCells, OptimalMove) :-
@@ -82,21 +76,22 @@ optimal_move(WinningCells, CounterCells, OptimalMove) :-
     getCells(L, n),
     writeln(L),
     %using free spaces, check win spaces
-    %maplist((member(Cell, L), winCell(Cell, x)), L, WinningCells),
-    maplist(winCell(), L, WinningCells),
-    getCells(M, n),
+    findall(NewCell, (member(Cell, L), checkCell(Cell, x, NewCell, 10)), WinningCells),
+    getCells(NewCellsWithWinning, n),
     %if no win spaces, check counter spaces
-    findall(Cell, (member(Cell, M), counterCell(Cell, o)), CounterCells),
-    getCells(N, n),
-    writeln(N),
+    findall(NewCell, (member(Cell, NewCellsWithWinning), checkCell(Cell, o, NewCell, 5)), CounterCells),
+
+    getCells(CellsByHeuristic, n),
+    writeln(CellsByHeuristic),
+    bagof(cell(_,_,n,H), cell(_,_,n,H), Bag),
+    findall(cell(X, Y, N, H), cell(_, _, n, ), OptimalMoves),
     %if no counter spaces, choose highest heuristic val
     write("Winning Move(s): "),
     writeln(WinningCells),
     
     write("Counter Moves(s): "),
     writeln(CounterCells),
-    
+   
     write("Moves in order of heuristic val: "),
-    
-    OptimalMove = [WinningCells, CounterCells, L].
+    OptimalMove = [WinningCells, CounterCells, Bag].
     
