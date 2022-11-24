@@ -62,11 +62,13 @@ counterCell(cell(X, Y, N, H), Player) :-
     retract(cell(X, Y, N, H)).
 
 winCell(cell(X, Y, N, H), Player) :-
-    ((    findall(cell(X, B, Player, Heuristic), cell(X, B, Player, Heuristic), L),
+    (    
+    (findall(cell(X, B, Player, Heuristic), cell(X, B, Player, Heuristic), L),
     length(L, 2))
     ;
     (findall(cell(A, Y, Player, Heuristic), cell(A, Y, Player, Heuristic), L),
-    length(L, 2))),
+    length(L, 2))
+    ),
     assertz(cell(X, Y, N, 10)),
     retract(cell(X, Y, N, H)).
 
